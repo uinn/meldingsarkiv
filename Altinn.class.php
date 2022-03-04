@@ -72,7 +72,7 @@ class Altinn
         }
     }
 
-    public function getAttachments($orgno,$messageid)
+    public function getAttachment($orgno,$messageid)
     {
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
 
@@ -85,10 +85,18 @@ class Altinn
                     $xml_url = $file->_links->self->href;
                 }
             }
-            $xml = $this->getAttachmentXML($xml_url);
-            echo $xml_url." - XML\n";
-            echo $pdf_url." - PDF\n";
-            echo $xml;
+            if (isset($pdf_url) && isset($xml_url)) {
+                $xml = $this->getAttachmentXML($xml_url);
+                $metadata= $this->xml2json($xml);
+                $messagetype = "Model\\" . array_key_first((array)$metadata);
+                $model = new $messagetype($messageid,$metadata);
+                $result = $this->saveAttachmentFile($pdf_url,$model->path,$model->filename);
+                if($result === "Success") {
+                    echo "Saved messageId " . $messageid . " as " . $model->filename . "\n";
+                    // save messageid to database
+                }
+            }
+            //print_r($model);
         }
     }
 
@@ -119,7 +127,6 @@ class Altinn
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
 
             $curl = new Curl();
-
             $curl->setHeader('ApiKey', ALTINN_API_KEY);
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
@@ -134,5 +141,42 @@ class Altinn
             }
         }
     }
+
+    private function saveAttachmentFile($url,$path,$filename)
+    {
+        $code = "UnAuthenticated";
+        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
+            $code = "NoWork";
+            if (!file_exists($path)) {
+                mkdir($path, 0755, true);
+            }
+            $filepath = $path . $filename;
+            if (!file_exists($filepath)) {
+                $curl = new Curl();
+                $curl->setHeader('ApiKey', ALTINN_API_KEY);
+                $curl->setHeader('Content-Type', 'application/hal+json');
+                $curl->setHeader('Accept', 'application/hal+json');
+                $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+                $curl->download($url, $filepath);
+                if ($curl->error) {
+                    echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
+                    $code = "Error";
+                } else {
+                    $code = "Success";
+                }
+            }
+        }
+        return $code;
+    }
+
+    private function xml2json($response)
+    {
+        $xml_obj = @simplexml_load_string($response);
+        if ($xml_obj !== false) {
+            $response = json_decode(json_encode($xml_obj), FALSE);
+        }
+        return $response;
+    }
+
 
 }
