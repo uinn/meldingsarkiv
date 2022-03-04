@@ -2,11 +2,13 @@
 
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/Altinn.class.php';
+require __DIR__ . '/Model.class.php';
 require __DIR__ . '/config.php';
 
 use Curl\Curl;
 use Altinn\Altinn;
 use Dotenv\Dotenv;
+use Model\Message;
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
@@ -21,7 +23,7 @@ $altinn->authenticate();
 $messages = $altinn->getMessageList($orgno,$svccode);
 
 foreach($messages as $message) {
-    $altinn->getAttachments($orgno,$message->MessageId);
+    $altinn->getAttachment($orgno,$message->MessageId);
     //echo $message->MessageId."\n";
 }
 
