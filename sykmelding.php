@@ -1,7 +1,7 @@
 <?php
 
 require __DIR__ . '/vendor/autoload.php';
-require __DIR__ . '/altinn.class.php';
+require __DIR__ . '/Altinn.class.php';
 require __DIR__ . '/config.php';
 
 use Curl\Curl;
@@ -12,24 +12,20 @@ $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 $dotenv->required('ALTINN_API_URL', 'ALTINN_API_KEY', 'ALTINN_API_CLIENT_CERT', 'ALTINN_API_CLIENT_KEY', 'ALTINN_API_CLIENT_KEYPWD', 'ALTINN_API_CLIENT_USER', 'ALTINN_API_CLIENT_PASS')->notEmpty();
 
-// $_ENV['ALTINN_API_URL'];
-// $_ENV['ALTINN_API_KEY'];
+$orgno = "911032023";
+$svccode ="4503";
 
-// $_ENV["ALTINN_API_CLIENT_CERT"];
-// $_ENV['ALTINN_API_CLIENT_KEY'];
-// $_ENV['ALTINN_API_CLIENT_KEYPWD'];
+$altinn = new Altinn();
+$altinn->authenticate();
 
-// $_ENV['ALTINN_API_CLIENT_USER'];
-// $_ENV['ALTINN_API_CLIENT_PASS'];
+$messages = $altinn->getMessageList($orgno,$svccode);
 
-// #############
-
-//$altinn = new Altinn();
-//$altinn->authenticate();
+foreach($messages as $message) {
+    $altinn->getAttachments($orgno,$message->MessageId);
+    //echo $message->MessageId."\n";
+}
 
 //$result = $altinn->getMessages();
-
-echo $_ENV['ALTINN_API_CLIENT_CERT'];
-echo "\n";
-echo ALTINN_API_CLIENT_KEY;
+//print_r($messages);
+//echo $result;
 echo "\n";
