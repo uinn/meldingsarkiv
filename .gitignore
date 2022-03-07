@@ -16,6 +16,8 @@ Application/Extensions/*
 
 tmp
 
+*.sqlite3
+
 pki/*.key
 pki/*.pfx
 pki/*.p12

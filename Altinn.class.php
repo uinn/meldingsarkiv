@@ -3,6 +3,7 @@
 namespace Altinn;
 
 use Curl\Curl;
+use PDO;
 
 class Altinn
 {
@@ -50,7 +51,7 @@ class Altinn
 
     }
 
-    public function getMessageList($orgno,$svccode)
+    public function getMessageList($orgno, $svccode)
     {
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
 
@@ -60,7 +61,7 @@ class Altinn
             $curl->setHeader('ApiKey', ALTINN_API_KEY);
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
-            $curl->setCookie(".ASPXAUTH",$_SESSION['altinn-cookie']);
+            $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
             $curl->get($url);
 
             if ($curl->error) {
@@ -72,35 +73,41 @@ class Altinn
         }
     }
 
-    public function getAttachment($orgno,$messageid)
+    public function getAttachment($orgno, $messageid)
     {
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
-
-            $files = $this->getAttachmentList($orgno,$messageid);
-            foreach($files as $file) {
-                if (preg_match("/^([a-zA-Z0-9\s_\\.\-\(\):])+\.(pdf|jpg|png|gif)$/i", $file->FileName)) {
-                    $pdf_url = $file->_links->self->href;
+            $db = $this->dbConnect();
+            //$this->createDB();
+            if ($this->checkDB($messageid)) {
+                $files = $this->getAttachmentList($orgno, $messageid);
+                foreach ($files as $file) {
+                    if (preg_match("/^([a-zA-Z0-9\s_\\.\-\(\):])+\.(pdf|jpg|png|gif)$/i", $file->FileName)) {
+                        $pdf_url = $file->_links->self->href;
+                    }
+                    if (preg_match("/^([a-zA-Z0-9\s_\\.\-\(\):])+\.(xml|XML)$/i", $file->FileName)) {
+                        $xml_url = $file->_links->self->href;
+                    }
                 }
-                if (preg_match("/^([a-zA-Z0-9\s_\\.\-\(\):])+\.(xml|XML)$/i", $file->FileName)) {
-                    $xml_url = $file->_links->self->href;
+                if (isset($pdf_url) && isset($xml_url)) {
+                    $xml = $this->getAttachmentXML($xml_url);
+                    $metadata = $this->xml2json($xml);
+                    $messagetype = "Model\\" . array_key_first((array)$metadata);
+                    $model = new $messagetype($messageid, $metadata);
+                    $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
+                    if ($result === "Success") {
+                        echo "Saved messageId " . $messageid . " as " . $model->filename . "\n";
+                        $this->addDBentry($messageid, $model->path, $model->filename);
+                        // save messageid to database
+                    }
                 }
+                //print_r($model);
+            } else {
+                echo "messageId " . $messageid . " already downloaded\n";
             }
-            if (isset($pdf_url) && isset($xml_url)) {
-                $xml = $this->getAttachmentXML($xml_url);
-                $metadata= $this->xml2json($xml);
-                $messagetype = "Model\\" . array_key_first((array)$metadata);
-                $model = new $messagetype($messageid,$metadata);
-                $result = $this->saveAttachmentFile($pdf_url,$model->path,$model->filename);
-                if($result === "Success") {
-                    echo "Saved messageId " . $messageid . " as " . $model->filename . "\n";
-                    // save messageid to database
-                }
-            }
-            //print_r($model);
         }
     }
 
-    private function getAttachmentList($orgno,$messageid)
+    private function getAttachmentList($orgno, $messageid)
     {
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
 
@@ -110,7 +117,7 @@ class Altinn
             $curl->setHeader('ApiKey', ALTINN_API_KEY);
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
-            $curl->setCookie(".ASPXAUTH",$_SESSION['altinn-cookie']);
+            $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
             $curl->get($url);
 
             if ($curl->error) {
@@ -130,7 +137,7 @@ class Altinn
             $curl->setHeader('ApiKey', ALTINN_API_KEY);
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
-            $curl->setCookie(".ASPXAUTH",$_SESSION['altinn-cookie']);
+            $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
             $curl->get($url);
 
             if ($curl->error) {
@@ -142,7 +149,7 @@ class Altinn
         }
     }
 
-    private function saveAttachmentFile($url,$path,$filename)
+    private function saveAttachmentFile($url, $path, $filename)
     {
         $code = "UnAuthenticated";
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
@@ -178,5 +185,57 @@ class Altinn
         return $response;
     }
 
+    private function dbConnect()
+    {
+        try {
+            $this->db = new PDO(ALTINN_DB);
+            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+        return $this->db;
+    }
 
+    private function checkDB($messageId)
+    {
+        try {
+            $rows = 0;
+            $result = $this->db->query('SELECT COUNT(*) FROM downloaded WHERE "messageId" = "' . $messageId . '"', PDO::FETCH_ASSOC);
+            $rows = $result->fetchColumn();
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+
+        if ($rows > 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private function createDB()
+    {
+        try {
+            $query = "CREATE TABLE IF NOT EXISTS downloaded (messageId TEXT PRIMARY KEY, filepath TEXT, filename TEXT, date TEXT DEFAULT (datetime('now','localtime')))";
+            $result = $this->db->query($query, PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+
+    }
+
+    private function addDBentry($messageId, $path, $filename)
+    {
+        try {
+            $insert = 'INSERT INTO downloaded (messageId,filepath,filename) VALUES (:id, :path, :name)';
+            $stmt = $this->db->prepare($insert);
+            $stmt->bindValue(':id', $messageId, PDO::PARAM_STR);
+            $stmt->bindValue(':path', $path, PDO::PARAM_STR);
+            $stmt->bindValue(':name', $filename, PDO::PARAM_STR);
+            $stmt->execute();
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+
+    }
 }

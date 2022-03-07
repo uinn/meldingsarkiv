@@ -28,6 +28,7 @@ foreach($messages as $message) {
 }
 
 //$result = $altinn->getMessages();
+
 //print_r($messages);
 //echo $result;
 echo "\n";
