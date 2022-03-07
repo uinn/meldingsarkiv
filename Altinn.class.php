@@ -155,7 +155,9 @@ class Altinn
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
             $code = "NoWork";
             if (!file_exists($path)) {
-                mkdir($path, 0755, true);
+                if (!mkdir($path, 0755, true) && !is_dir($path)) {
+                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
+                }
             }
             $filepath = $path . $filename;
             if (!file_exists($filepath)) {
