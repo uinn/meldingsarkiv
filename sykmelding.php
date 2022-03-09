@@ -15,17 +15,30 @@ $dotenv->load();
 $dotenv->required('ALTINN_API_URL', 'ALTINN_API_KEY', 'ALTINN_API_CLIENT_CERT', 'ALTINN_API_CLIENT_KEY', 'ALTINN_API_CLIENT_KEYPWD', 'ALTINN_API_CLIENT_USER', 'ALTINN_API_CLIENT_PASS')->notEmpty();
 
 $orgno = "911032023";
-$svccode ="4503";
+$sykepenger ="4751";
+$inntektsmeldinger = "4936";
 
 $altinn = new Altinn();
 $altinn->authenticate();
 
-$messages = $altinn->getMessageList($orgno,$svccode);
+// foreach org
+// # get sykepenger
+$messages = $altinn->getMessageList($orgno,$sykepenger);
 
 foreach($messages as $message) {
     $altinn->getAttachment($orgno,$message->MessageId);
     //echo $message->MessageId."\n";
 }
+
+// # get inntektsmeldinger
+$messages2 = $altinn->getMessageList($orgno,$inntektsmeldinger);
+
+foreach($messages2 as $message2) {
+    $altinn->getForm($orgno,$message2->MessageId);
+    //echo $message2->MessageId."\n";
+}
+
+// end foreach
 
 //$result = $altinn->getMessages();
 

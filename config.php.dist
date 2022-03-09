@@ -1,0 +1,13 @@
+<?php
+
+const ALTINN_API_URL = "https://altinn.no";
+const ALTINN_API_KEY = "xxxxxxxx-xxxxx-xxxxxx-xxxxxxxx";
+const ALTINN_API_CLIENT_CERT = __DIR__ . "/pki/xxxx.crt";
+const ALTINN_API_CLIENT_KEY = __DIR__ . "/pki/xxxx.key";
+const ALTINN_API_CLIENT_KEYPWD = "xxxxxxxxxxxxxx";
+const ALTINN_API_CLIENT_USER = "xxxxxxxxx";
+const ALTINN_API_CLIENT_PASS = "xxxxxxxx";
+const ALTINN_ORG_NOS = [911031981,911032023,911032058];
+const ALTINN_LOCAL_STORAGE = __DIR__ . "/tmp";
+const ALTINN_DB = "sqlite:altinn_msg.sqlite3";
+
