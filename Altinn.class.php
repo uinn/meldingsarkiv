@@ -40,7 +40,10 @@ class Altinn
         $curl->post($url, $payload);
 
         if ($curl->error) {
-            echo $curl->response->error_type . ': ' . $curl->response->errorMessage . "\n";
+	   echo 'error: ' . $curl->error . "\n";
+	   echo 'errorCode: ' . $curl->errorCode . "\n";
+	   echo 'errorMessage: ' . $curl->errorMessage . "\n";
+            //echo $curl->response->error_type . ': ' . $curl->response->errorMessage . "\n";
             exit;
         } else {
             $_SESSION['authenticated'] = true;
@@ -107,6 +110,33 @@ class Altinn
         }
     }
 
+    public function getForm($orgno, $messageid)
+    {
+        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
+            $db = $this->dbConnect();
+            //$this->createDB();
+            if ($this->checkDB($messageid)) {
+                $xml_url = $this->getFormsUrl($orgno, $messageid);
+                $pdf_url = str_replace("formdata", 'print', $xml_url);
+                if (isset($pdf_url, $xml_url)) {
+                    $xml = $this->getAttachmentXML($xml_url);
+                    $metadata = $this->xml2json(preg_replace('/ns6:/', '', $xml));
+                    $messagetype = "Model\\" . $metadata->melding->Skjemainnhold->ytelse;
+                    $model = new $messagetype($messageid, $metadata);
+                    $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
+                    if ($result === "Success") {
+                        echo "Saved messageId " . $messageid . " as " . $model->filename . "\n";
+                        $this->addDBentry($messageid, $model->path, $model->filename);
+                        // save messageid to database
+                    }
+                }
+                //print_r($model);
+            } else {
+                echo "messageId " . $messageid . " already downloaded\n";
+            }
+        }
+    }
+
     private function getAttachmentList($orgno, $messageid)
     {
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
@@ -125,6 +155,28 @@ class Altinn
                 exit;
             } else {
                 return $curl->getResponse()->_embedded->attachments;
+            }
+        }
+    }
+
+    private function getFormsUrl($orgno, $messageid)
+    {
+        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
+
+            $url = ALTINN_API_URL . '/api/' . $orgno . '/Messages/' . $messageid . '/forms';
+            $curl = new Curl();
+
+            $curl->setHeader('ApiKey', ALTINN_API_KEY);
+            $curl->setHeader('Content-Type', 'application/hal+json');
+            $curl->setHeader('Accept', 'application/hal+json');
+            $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+            $curl->get($url);
+
+            if ($curl->error) {
+                echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
+                exit;
+            } else {
+                return $curl->getResponse()->_embedded->forms->_links->formdata->href;
             }
         }
     }
