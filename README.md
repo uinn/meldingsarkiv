@@ -1,7 +1,5 @@
 # Meldingsarkiv
-## Nedlasting av meldinger fra Altinn for lovpålagt arivering
-
-[![curl](curl.png)]
+## Nedlasting av meldinger fra Altinn for lovpålagt arkivering
 
 Dette scriptet er et objekt-orientert PHP-script som logger inn i Altinn med virksomhetssertifikat, finner inntektsmeldinger og søknader om sykepenger, samt disses metadata, laster de ned og lagrer de på egnet sted med filnavn og sti på ønsket format.
 
@@ -23,11 +21,11 @@ Pålogging til Altinn kan foregå på flere forskjellige måter, men vi har i de
 Oppdraget er å laste ned 2 hovedtyper av meldinger
 - Søknad om sykepenger
 - Inntektsmeldinger (med følgende undertyper)
--- Sykepenger
--- Foreldrepenger
--- Omsorgspenger
--- Pleiepenger
--- Svangerskapspenger
+  - Sykepenger
+  - Foreldrepenger
+  - Omsorgspenger
+  - Pleiepenger
+  - Svangerskapspenger
 
 Disse meldingenes metadata innholder ikke navn, så det må gjøres separate oppslag i BAM sin database for å hente ut det.
 ### Søknad om sykepenger
