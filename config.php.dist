@@ -10,4 +10,13 @@ const ALTINN_API_CLIENT_PASS = "xxxxxxxx";
 const ALTINN_ORG_NOS = [911031981,911032023,911032058];
 const ALTINN_LOCAL_STORAGE = __DIR__ . "/tmp";
 const ALTINN_DB = "sqlite:altinn_msg.sqlite3";
+const BAM_DATABASE = "bam";
+const BAM_DATABASE_EMPLOYEEVIEW = "v_users";
+
+//SQL
+const SQL_TYPE = 'mysql'; //http://php.net/manual/en/pdo.drivers.php
+const SQL_HOST = 'mariadb.example.com';
+const SQL_DB = 'database'; //Default database. Other databases can be selected
+const SQL_USER = 'user';
+const SQL_PASS = 'password';
 
