@@ -40,10 +40,9 @@ class Altinn
         $curl->post($url, $payload);
 
         if ($curl->error) {
-	   echo 'error: ' . $curl->error . "\n";
-	   echo 'errorCode: ' . $curl->errorCode . "\n";
-	   echo 'errorMessage: ' . $curl->errorMessage . "\n";
-            //echo $curl->response->error_type . ': ' . $curl->response->errorMessage . "\n";
+            echo 'error: ' . $curl->error . "\n";
+            echo 'errorCode: ' . $curl->errorCode . "\n";
+            echo 'errorMessage: ' . $curl->errorMessage . "\n";
             exit;
         } else {
             $_SESSION['authenticated'] = true;
@@ -80,14 +79,14 @@ class Altinn
     {
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
             $db = $this->dbConnect();
-            //$this->createDB();
+            $this->createDB();
             if ($this->checkDB($messageid)) {
                 $files = $this->getAttachmentList($orgno, $messageid);
                 foreach ($files as $file) {
-                    if (preg_match("/^([a-zA-Z0-9\s_\\.\-\(\):])+\.(pdf|jpg|png|gif)$/i", $file->FileName)) {
+                    if (preg_match("/^.*\.(pdf|jpg|png|gif)$/i", $file->FileName)) {
                         $pdf_url = $file->_links->self->href;
                     }
-                    if (preg_match("/^([a-zA-Z0-9\s_\\.\-\(\):])+\.(xml|XML)$/i", $file->FileName)) {
+                    if (preg_match("/^.*\.(xml|XML)$/i", $file->FileName)) {
                         $xml_url = $file->_links->self->href;
                     }
                 }
@@ -98,42 +97,53 @@ class Altinn
                     $model = new $messagetype($messageid, $metadata);
                     $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
                     if ($result === "Success") {
-                        echo "Saved messageId " . $messageid . " as " . $model->filename . "\n";
+                        echo "Saved messageId " . $messageid . " as " . $model->path . $model->filename . "\n";
                         $this->addDBentry($messageid, $model->path, $model->filename);
                         // save messageid to database
                     }
                 }
-                //print_r($model);
             } else {
-                echo "messageId " . $messageid . " already downloaded\n";
+                // echo "messageId " . $messageid . " already downloaded\n";
             }
         }
     }
 
-    public function getForm($orgno, $messageid)
+    private function dbConnect()
     {
-        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
-            $db = $this->dbConnect();
-            //$this->createDB();
-            if ($this->checkDB($messageid)) {
-                $xml_url = $this->getFormsUrl($orgno, $messageid);
-                $pdf_url = str_replace("formdata", 'print', $xml_url);
-                if (isset($pdf_url, $xml_url)) {
-                    $xml = $this->getAttachmentXML($xml_url);
-                    $metadata = $this->xml2json(preg_replace('/ns6:/', '', $xml));
-                    $messagetype = "Model\\" . $metadata->melding->Skjemainnhold->ytelse;
-                    $model = new $messagetype($messageid, $metadata);
-                    $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
-                    if ($result === "Success") {
-                        echo "Saved messageId " . $messageid . " as " . $model->filename . "\n";
-                        $this->addDBentry($messageid, $model->path, $model->filename);
-                        // save messageid to database
-                    }
-                }
-                //print_r($model);
-            } else {
-                echo "messageId " . $messageid . " already downloaded\n";
-            }
+        try {
+            $this->db = new PDO(ALTINN_DB);
+            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+        return $this->db;
+    }
+
+    private function createDB(): void
+    {
+        try {
+            $query = "CREATE TABLE IF NOT EXISTS downloaded (messageId TEXT PRIMARY KEY, filepath TEXT, filename TEXT, date TEXT DEFAULT (datetime('now','localtime')))";
+            $result = $this->db->query($query, PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+
+    }
+
+    private function checkDB($messageId)
+    {
+        try {
+            $rows = 0;
+            $result = $this->db->query('SELECT COUNT(*) FROM downloaded WHERE "messageId" = "' . $messageId . '"', PDO::FETCH_ASSOC);
+            $rows = $result->fetchColumn();
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+
+        if ($rows > 0) {
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -159,28 +169,6 @@ class Altinn
         }
     }
 
-    private function getFormsUrl($orgno, $messageid)
-    {
-        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
-
-            $url = ALTINN_API_URL . '/api/' . $orgno . '/Messages/' . $messageid . '/forms';
-            $curl = new Curl();
-
-            $curl->setHeader('ApiKey', ALTINN_API_KEY);
-            $curl->setHeader('Content-Type', 'application/hal+json');
-            $curl->setHeader('Accept', 'application/hal+json');
-            $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
-            $curl->get($url);
-
-            if ($curl->error) {
-                echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
-                exit;
-            } else {
-                return $curl->getResponse()->_embedded->forms->_links->formdata->href;
-            }
-        }
-    }
-
     private function getAttachmentXML($url)
     {
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
@@ -199,6 +187,15 @@ class Altinn
                 return $curl->getResponse();
             }
         }
+    }
+
+    private function xml2json($response)
+    {
+        $xml_obj = @simplexml_load_string($response);
+        if ($xml_obj !== false) {
+            $response = json_decode(json_encode($xml_obj), FALSE);
+        }
+        return $response;
     }
 
     private function saveAttachmentFile($url, $path, $filename)
@@ -230,54 +227,6 @@ class Altinn
         return $code;
     }
 
-    private function xml2json($response)
-    {
-        $xml_obj = @simplexml_load_string($response);
-        if ($xml_obj !== false) {
-            $response = json_decode(json_encode($xml_obj), FALSE);
-        }
-        return $response;
-    }
-
-    private function dbConnect()
-    {
-        try {
-            $this->db = new PDO(ALTINN_DB);
-            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            echo $e->getMessage();
-        }
-        return $this->db;
-    }
-
-    private function checkDB($messageId)
-    {
-        try {
-            $rows = 0;
-            $result = $this->db->query('SELECT COUNT(*) FROM downloaded WHERE "messageId" = "' . $messageId . '"', PDO::FETCH_ASSOC);
-            $rows = $result->fetchColumn();
-        } catch (PDOException $e) {
-            echo $e->getMessage();
-        }
-
-        if ($rows > 0) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    private function createDB()
-    {
-        try {
-            $query = "CREATE TABLE IF NOT EXISTS downloaded (messageId TEXT PRIMARY KEY, filepath TEXT, filename TEXT, date TEXT DEFAULT (datetime('now','localtime')))";
-            $result = $this->db->query($query, PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            echo $e->getMessage();
-        }
-
-    }
-
     private function addDBentry($messageId, $path, $filename)
     {
         try {
@@ -291,5 +240,77 @@ class Altinn
             echo $e->getMessage();
         }
 
+    }
+
+    public function getForm($orgno, $messageid)
+    {
+        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
+            $db = $this->dbConnect();
+            $this->createDB();
+            if ($this->checkDB($messageid)) {
+                $xml_url = $this->getFormsUrl($orgno, $messageid);
+                $pdf_url = str_replace("formdata", 'print', $xml_url);
+                if (isset($pdf_url, $xml_url)) {
+                    $xml = $this->getFormsXML($xml_url);
+                    $metadata = json_decode(json_encode($this->xml2json(preg_replace('/ns6:/', '', $xml))), FALSE);
+                    $messagetype = "Model\\" . $metadata->Skjemainnhold->ytelse;
+                    $model = new $messagetype($messageid, $metadata);
+                    $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
+                    if ($result === "Success") {
+                        echo "Saved messageId " . $messageid . " as " . $model->path . $model->filename . "\n";
+                        $this->addDBentry($messageid, $model->path, $model->filename);
+                        // save messageid to database
+                    }
+                }
+            } else {
+                // echo "messageId " . $messageid . " already downloaded\n";
+            }
+        }
+    }
+
+    private function getFormsUrl($orgno, $messageid)
+    {
+        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
+
+            $url = ALTINN_API_URL . '/api/' . $orgno . '/Messages/' . $messageid . '/forms';
+            $curl = new Curl();
+
+            $curl->setHeader('ApiKey', ALTINN_API_KEY);
+            $curl->setHeader('Content-Type', 'application/hal+json');
+            $curl->setHeader('Accept', 'application/hal+json');
+            $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+            $curl->get($url);
+
+            if ($curl->error) {
+                echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
+                exit;
+            } else {
+                return $curl->getResponse()->_embedded->forms[0]->_links->formdata->href;
+            }
+        }
+    }
+
+    private function getFormsXML($url)
+    {
+        if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
+
+            $curl = new Curl();
+            $curl->setOpt(CURLOPT_RETURNTRANSFER, true);
+            $curl->setOpt(CURLOPT_BINARYTRANSFER, true);
+            $curl->setHeader('ApiKey', ALTINN_API_KEY);
+            $curl->setHeader('Content-Type', 'application/hal+json');
+            $curl->setHeader('Accept', 'application/hal+json');
+            $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+            $file = tmpfile();
+            $path = stream_get_meta_data($file)['uri'];
+            $curl->download($url, $path);
+            $xml_response = file_get_contents($path);
+            if ($curl->error) {
+                echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
+                exit;
+            } else {
+                return $xml_response;
+            }
+        }
     }
 }
