@@ -53,11 +53,11 @@ class Altinn
 
     }
 
-    public function getMessageList($orgno, $svccode)
+    public function getMessageList($orgno, $svccode, $fromdate, $dateto, $skip)
     {
         if (isset($_SESSION['authenticated']) && $_SESSION['authenticated']) {
 
-            $url = ALTINN_API_URL . '/api/' . $orgno . '/Messages?$filter=ServiceCode+eq+\'' . $svccode . '\'';
+            $url = ALTINN_API_URL . '/api/' . $orgno . '/Messages?dateFrom=' . $fromdate . '&dateTo=' . $dateto . '&$skip=' . $skip . '&$filter=ServiceCode+eq+\'' . $svccode . '\'';
             $curl = new Curl();
 
             $curl->setHeader('ApiKey', ALTINN_API_KEY);
