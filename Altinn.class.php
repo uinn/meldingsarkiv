@@ -81,6 +81,8 @@ class Altinn
             $db = $this->dbConnect();
             $this->createDB();
             if ($this->checkDB($messageid)) {
+                $now = new \DateTime();
+                $time = $now->format("Y-m-d H:i:s");
                 $files = $this->getAttachmentList($orgno, $messageid);
                 foreach ($files as $file) {
                     if (preg_match("/^.*\.(pdf|jpg|png|gif)$/i", $file->FileName)) {
@@ -97,7 +99,7 @@ class Altinn
                     $model = new $messagetype($messageid, $metadata);
                     $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
                     if ($result === "Success") {
-                        echo $time . " - Saved messageId " . $messageid . " as " . $model->filename . "\n";
+                        echo $time . " - Saved messageId " . $messageid . " as " . $model->path . $model->filename . "\n";
                         $this->addDBentry($messageid, $model->path, $model->filename);
                         // save messageid to database
                     }
@@ -248,6 +250,8 @@ class Altinn
             $db = $this->dbConnect();
             $this->createDB();
             if ($this->checkDB($messageid)) {
+                $now = new \DateTime();
+                $time = $now->format("Y-m-d H:i:s");
                 $xml_url = $this->getFormsUrl($orgno, $messageid);
                 $pdf_url = str_replace("formdata", 'print', $xml_url);
                 if (isset($pdf_url, $xml_url)) {
@@ -257,7 +261,7 @@ class Altinn
                     $model = new $messagetype($messageid, $metadata);
                     $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
                     if ($result === "Success") {
-                        echo $time . " - Saved messageId " . $messageid . " as " . $model->filename . "\n";
+                        echo $time . " - Saved messageId " . $messageid . " as " . $model->path . $model->filename . "\n";
                         $this->addDBentry($messageid, $model->path, $model->filename);
                         // save messageid to database
                     }
