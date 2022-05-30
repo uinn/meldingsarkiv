@@ -76,13 +76,21 @@ class Sykepenger extends Message
         $this->subtype = "Sykepenger";
         $this->name = preg_replace('/\s+/', '_', BAM::getNameFromBAM($obj->arbeidstakerFnr));
         $this->nin = $obj->arbeidstakerFnr;
-        $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        if(is_object($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode)) {
-            $this->enddate = date('ymd',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->tom));
+        if(is_object($obj->arbeidsforhold) && is_string($obj->arbeidsforhold->foersteFravaersdag)) {
+            $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+            $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        } elseif(is_object($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode) && is_string($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->fom)) {
+            $this->year = date('Y',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->fom));
+            $this->startdate = date('ymd',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->fom));
         } else {
-            $this->enddate = date('ymd',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode[0]->tom));
+            $this->year = date('Y',strtotime($obj->avsendersystem->innsendingstidspunkt));
+            $this->startdate = date('ymd',strtotime($obj->avsendersystem->innsendingstidspunkt));
         }
+        #if(is_object($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode)) {
+        #    $this->enddate = date('ymd',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->tom));
+        #} else {
+        #    $this->enddate = date('ymd',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode[0]->tom));
+        #}
         $this->filename = $this->name . "_" . $this->messagetype . "_" . $this->subtype . "_" . $this->startdate . "_" . $messageid . ".pdf";
         $this->path = ALTINN_LOCAL_STORAGE . "/NAV " . $this->year . "/00 Sykepenger/";
     }
@@ -118,9 +126,22 @@ class Omsorgspenger extends Message
         $this->subtype = "Omsorgspenger";
         $this->name = preg_replace('/\s+/', '_', BAM::getNameFromBAM($obj->arbeidstakerFnr));
         $this->nin = $obj->arbeidstakerFnr;
-        $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->enddate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        if(is_object($obj->arbeidsforhold) && is_string($obj->arbeidsforhold->foersteFravaersdag)) {
+            $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+            $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        } elseif(is_object($obj->omsorgspenger->delvisFravaersListe) && isset($obj->omsorgspenger->delvisFravaersListe->delvisFravaer->dato) && is_string($obj->omsorgspenger->delvisFravaersListe->delvisFravaer->dato)) {
+            $this->year = date('Y',strtotime($obj->omsorgspenger->delvisFravaersListe->delvisFravaer->dato));
+            $this->startdate = date('ymd',strtotime($obj->omsorgspenger->delvisFravaersListe->delvisFravaer->dato));
+        } elseif(is_object($obj->omsorgspenger->delvisFravaersListe) && isset($obj->omsorgspenger->delvisFravaersListe->delvisFravaer[0]->dato) && is_string($obj->omsorgspenger->delvisFravaersListe->delvisFravaer[0]->dato)) {
+            $this->year = date('Y',strtotime($obj->omsorgspenger->delvisFravaersListe->delvisFravaer[0]->dato));
+            $this->startdate = date('ymd',strtotime($obj->omsorgspenger->delvisFravaersListe->delvisFravaer[0]->dato));
+        } elseif(is_object($obj->omsorgspenger->fravaersPerioder) && isset($obj->omsorgspenger->fravaersPerioder->fravaerPeriode->fom) && is_string($obj->omsorgspenger->fravaersPerioder->fravaerPeriode->fom)) {
+            $this->year = date('Y',strtotime($obj->omsorgspenger->fravaersPerioder->fravaerPeriode->fom));
+            $this->startdate = date('ymd',strtotime($obj->omsorgspenger->fravaersPerioder->fravaerPeriode->fom));
+        } else {
+            $this->year = date('Y',strtotime($obj->avsendersystem->innsendingstidspunkt));
+            $this->startdate = date('ymd',strtotime($obj->avsendersystem->innsendingstidspunkt));
+        }
         $this->filename = $this->name . "_" . $this->messagetype . "_" . $this->subtype . "_" . $this->startdate . "_" . $messageid . ".pdf";
         $this->path = ALTINN_LOCAL_STORAGE . "/NAV " . $this->year . "/00 Annet/";
     }
@@ -137,9 +158,16 @@ class Pleiepenger extends Message
         $this->subtype = "Pleiepenger";
         $this->name = preg_replace('/\s+/', '_', BAM::getNameFromBAM($obj->arbeidstakerFnr));
         $this->nin = $obj->arbeidstakerFnr;
-        $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->enddate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        if(is_object($obj->arbeidsforhold) && is_string($obj->arbeidsforhold->foersteFravaersdag)) {
+            $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+            $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        } elseif(is_object($obj->pleiepengerPerioder->periode) && isset($obj->pleiepengerPerioder->periode->fom) && is_string($obj->pleiepengerPerioder->periode->fom)) {
+            $this->year = date('Y',strtotime($obj->pleiepengerPerioder->periode->fom));
+            $this->startdate = date('ymd',strtotime($obj->pleiepengerPerioder->periode->fom));
+        } else {
+            $this->year = date('Y',strtotime($obj->avsendersystem->innsendingstidspunkt));
+            $this->startdate = date('ymd',strtotime($obj->avsendersystem->innsendingstidspunkt));
+        }
         $this->filename = $this->name . "_" . $this->messagetype . "_" . $this->subtype . "_" . $this->startdate . "_" . $messageid . ".pdf";
         $this->path = ALTINN_LOCAL_STORAGE . "/NAV " . $this->year . "/00 Annet/";
     }
@@ -156,9 +184,42 @@ class PleiepengerBarn extends Message
         $this->subtype = "PleiepengerBarn";
         $this->name = preg_replace('/\s+/', '_', BAM::getNameFromBAM($obj->arbeidstakerFnr));
         $this->nin = $obj->arbeidstakerFnr;
-        $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->enddate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        if(is_object($obj->arbeidsforhold) && is_string($obj->arbeidsforhold->foersteFravaersdag)) {
+            $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+            $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        } elseif(is_object($obj->pleiepengerPerioder) && isset($obj->pleiepengerPerioder->periode->fom) && is_string($obj->pleiepengerPerioder->periode->fom)) {
+            $this->year = date('Y',strtotime($obj->pleiepengerPerioder->periode->fom));
+            $this->startdate = date('ymd',strtotime($obj->pleiepengerPerioder->periode->fom));
+        } else {
+            $this->year = date('Y',strtotime($obj->avsendersystem->innsendingstidspunkt));
+            $this->startdate = date('ymd',strtotime($obj->avsendersystem->innsendingstidspunkt));
+        }
+        $this->filename = $this->name . "_" . $this->messagetype . "_" . $this->subtype . "_" . $this->startdate . "_" . $messageid . ".pdf";
+        $this->path = ALTINN_LOCAL_STORAGE . "/NAV " . $this->year . "/00 Annet/";
+    }
+
+}
+
+class PleiepengerNaerstaaende extends Message
+{
+    public function __construct($messageid,$metadata)
+    {
+        parent::__construct($messageid,$metadata);
+        $obj = $metadata->Skjemainnhold;
+        $this->messagetype = "Inntektsmelding";
+        $this->subtype = "PleiepengerNaerstaaende";
+        $this->name = preg_replace('/\s+/', '_', BAM::getNameFromBAM($obj->arbeidstakerFnr));
+        $this->nin = $obj->arbeidstakerFnr;
+        if(is_object($obj->arbeidsforhold) && is_string($obj->arbeidsforhold->foersteFravaersdag)) {
+            $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+            $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        } elseif(is_object($obj->pleiepengerPerioder) && isset($obj->pleiepengerPerioder->periode->fom) && is_string($obj->pleiepengerPerioder->periode->fom)) {
+            $this->year = date('Y',strtotime($obj->pleiepengerPerioder->periode->fom));
+            $this->startdate = date('ymd',strtotime($obj->pleiepengerPerioder->periode->fom));
+        } else {
+            $this->year = date('Y',strtotime($obj->avsendersystem->innsendingstidspunkt));
+            $this->startdate = date('ymd',strtotime($obj->avsendersystem->innsendingstidspunkt));
+        }
         $this->filename = $this->name . "_" . $this->messagetype . "_" . $this->subtype . "_" . $this->startdate . "_" . $messageid . ".pdf";
         $this->path = ALTINN_LOCAL_STORAGE . "/NAV " . $this->year . "/00 Annet/";
     }
@@ -175,9 +236,13 @@ class Opplaeringspenger extends Message
         $this->subtype = "Opplaeringspenger";
         $this->name = preg_replace('/\s+/', '_', BAM::getNameFromBAM($obj->arbeidstakerFnr));
         $this->nin = $obj->arbeidstakerFnr;
-        $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->enddate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        if(is_object($obj->arbeidsforhold) && is_string($obj->arbeidsforhold->foersteFravaersdag)) {
+            $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+            $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        } else {
+            $this->year = date('Y',strtotime($obj->avsendersystem->innsendingstidspunkt));
+            $this->startdate = date('ymd',strtotime($obj->avsendersystem->innsendingstidspunkt));
+        }
         $this->filename = $this->name . "_" . $this->messagetype . "_" . $this->subtype . "_" . $this->startdate . "_" . $messageid . ".pdf";
         $this->path = ALTINN_LOCAL_STORAGE . "/NAV " . $this->year . "/00 Annet/";
     }
@@ -194,9 +259,13 @@ class Svangerskapspenger extends Message
         $this->subtype = "Svangerskapspenger";
         $this->name = preg_replace('/\s+/', '_', BAM::getNameFromBAM($obj->arbeidstakerFnr));
         $this->nin = $obj->arbeidstakerFnr;
-        $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
-        $this->enddate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        if(is_object($obj->arbeidsforhold) && is_string($obj->arbeidsforhold->foersteFravaersdag)) {
+            $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+            $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
+        } else {
+            $this->year = date('Y',strtotime($obj->avsendersystem->innsendingstidspunkt));
+            $this->startdate = date('ymd',strtotime($obj->avsendersystem->innsendingstidspunkt));
+        }
         $this->filename = $this->name . "_" . $this->messagetype . "_" . $this->subtype . "_" . $this->startdate . "_" . $messageid . ".pdf";
         $this->path = ALTINN_LOCAL_STORAGE . "/NAV " . $this->year . "/00 Annet/";
     }

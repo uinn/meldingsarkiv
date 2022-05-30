@@ -97,7 +97,7 @@ class Altinn
                     $model = new $messagetype($messageid, $metadata);
                     $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
                     if ($result === "Success") {
-                        echo "Saved messageId " . $messageid . " as " . $model->path . $model->filename . "\n";
+                        echo $time . " - Saved messageId " . $messageid . " as " . $model->filename . "\n";
                         $this->addDBentry($messageid, $model->path, $model->filename);
                         // save messageid to database
                     }
@@ -257,7 +257,7 @@ class Altinn
                     $model = new $messagetype($messageid, $metadata);
                     $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
                     if ($result === "Success") {
-                        echo "Saved messageId " . $messageid . " as " . $model->path . $model->filename . "\n";
+                        echo $time . " - Saved messageId " . $messageid . " as " . $model->filename . "\n";
                         $this->addDBentry($messageid, $model->path, $model->filename);
                         // save messageid to database
                     }
