@@ -27,7 +27,9 @@ Oppdraget er å laste ned 2 hovedtyper av meldinger
   - Pleiepenger
   - Svangerskapspenger
 
-Disse meldingenes metadata innholder ikke navn, så det må gjøres separate oppslag i BAM sin database for å hente ut det.
+## Oppslag i ansattdatabase
+Disse meldingenes metadata innholder ikke navn, så det gjøres separate oppslag (på fødselsnr.) i vårt interne ansattregister (BAM) sin database for å hente ut personens juridiske navn.
+
 ### Søknad om sykepenger
 Denne meldingstypen filtreres på `ServiceCode: 4751` og har følgende metadata:
 ```XML
@@ -181,22 +183,31 @@ Denne meldingstypen filtreres på `ServiceCode: 4936` og har litt forskjellig fo
 
 ## Lagring
 ### Struktur
-De nedlastede meldingene lagres på X/specialSMB i følgende struktur:
-- Sykepenger
-  - 2021
-  - 2022
-- Foreldrepenger
-  - 2021
-  - 2022
-- Annet
-  - 2021
-  - 2022
+De nedlastede meldingene lagres på et SMB share i følgende struktur:
+- NAV 2020
+  - 00 Sykepenger
+  - 00 Foreldrepenger
+  - 00 Annet
+  - 00 Altinn API
+- NAV 2021
+  - 00 Sykepenger
+  - 00 Foreldrepenger
+  - 00 Annet
+  - 00 Altinn API
+- NAV 2022
+  - 00 Sykepenger
+  - 00 Foreldrepenger
+  - 00 Annet
+  - 00 Altinn API
+
+Mappen "00 Altinn API" inneholder den cumulative loggfilen "Importlogg.txt"
+
 ### Filnavn
 Filnavn lagres med "underscore" istedenfor mellomrom, og med Altinn sin meldingsId for å sikre unike filnavn.
 
 Søknad om sykepenger lagres som:
-`<Etternavn>_<Fornavn>_Sykepenger_<startdato>-<sluttdato>_<meldingsId>.pdf` eks.:
-Olsen_Ole_Sykepenger_220301-220331_a123456.pdf
+`<Etternavn>_<Fornavn>_<startdato>-<sluttdato>_<meldingsId>.pdf` eks.:
+Olsen_Ole_220301-220331_a123456.pdf
 
 Innteksmeldinger lagres som:
 `<Etternavn>_<Fornavn>_Inntektsmelding_<undertype>_<startdato>_<meldingsId>.pdf` eks.:
