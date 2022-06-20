@@ -22,6 +22,7 @@ $sykepenger ="4751";
 $inntektsmeldinger = "4936";
 
 $now = new DateTime();
+$now->setTimezone(new \DateTimeZone('Europe/Oslo'));
 $time = $now->format("Y-m-d H:i:s");
 
 // Sjekker meldinger fra siste 31 dager
