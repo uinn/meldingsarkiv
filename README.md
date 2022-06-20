@@ -182,21 +182,30 @@ Denne meldingstypen filtreres på `ServiceCode: 4936` og har litt forskjellig fo
 ## Lagring
 ### Struktur
 De nedlastede meldingene lagres på X/specialSMB i følgende struktur:
-- Sykepenger
-  - 2021
-  - 2022
-- Foreldrepenger
-  - 2021
-  - 2022
-- Annet
-  - 2021
-  - 2022
+- NAV 2020
+  - 00 Sykepenger
+  - 00 Foreldrepenger
+  - 00 Annet
+  - 00 API
+- NAV 2021
+  - 00 Sykepenger
+  - 00 Foreldrepenger
+  - 00 Annet
+  - 00 API
+- NAV 2022
+  - 00 Sykepenger
+  - 00 Foreldrepenger
+  - 00 Annet
+  - 00 API
+
+Mappen "00 API" inneholder loggfil
+
 ### Filnavn
 Filnavn lagres med "underscore" istedenfor mellomrom, og med Altinn sin meldingsId for å sikre unike filnavn.
 
 Søknad om sykepenger lagres som:
-`<Etternavn>_<Fornavn>_Sykepenger_<startdato>-<sluttdato>_<meldingsId>.pdf` eks.:
-Olsen_Ole_Sykepenger_220301-220331_a123456.pdf
+`<Etternavn>_<Fornavn>_<startdato>-<sluttdato>_<meldingsId>.pdf` eks.:
+Olsen_Ole_220301-220331_a123456.pdf
 
 Innteksmeldinger lagres som:
 `<Etternavn>_<Fornavn>_Inntektsmelding_<undertype>_<startdato>_<meldingsId>.pdf` eks.:
