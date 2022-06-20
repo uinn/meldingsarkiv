@@ -23,7 +23,6 @@ class Message
             session_start();
         }
         $this->messageid = $messageid;
-        //$this->metadata = $metadata;
     }
 }
 
@@ -33,7 +32,6 @@ class sykmelding extends Message
     {
         parent::__construct($messageid,$metadata);
         $obj = $metadata->sykmelding;
-        //$this->messagetype = array_key_first((array)$metadata);
         $this->messagetype = "sykmelding";
         $this->subtype = "";
         $this->name = preg_replace('/\s+/', '_', ucwords(strtolower($obj->pasient->navn->etternavn . "_" . $obj->pasient->navn->fornavn)));
