@@ -81,8 +81,9 @@ class Altinn
             $db = $this->dbConnect();
             $this->createDB();
             if ($this->checkDB($messageid)) {
-                $now = new \DateTime();
-                $time = $now->format("Y-m-d H:i:s");
+		        $now = new \DateTime();
+		        $now->setTimezone(new \DateTimeZone('Europe/Oslo'));
+		        $time = $now->format("Y-m-d H:i:s");
                 $files = $this->getAttachmentList($orgno, $messageid);
                 foreach ($files as $file) {
                     if (preg_match("/^.*\.(pdf|jpg|png|gif)$/i", $file->FileName)) {
@@ -98,8 +99,16 @@ class Altinn
                     $messagetype = "Model\\" . array_key_first((array)$metadata);
                     $model = new $messagetype($messageid, $metadata);
                     $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
-                    if ($result === "Success") {
-                        echo $time . " - Saved messageId " . $messageid . " as " . $model->path . $model->filename . "\n";
+        		    if ($result === "Success") {
+		            	$this->logpath = ALTINN_LOCAL_STORAGE . "/NAV " . $model->year . "/00 Altinn API/";
+            			if (!file_exists($this->logpath)) {
+			            	if (!mkdir($this->logpath, 0755, true) && !is_dir($this->logpath)) {
+				            	throw new \RuntimeException(sprintf('Directory "%s" was not created', $this->logpath));
+                		    }
+			            }
+			            $logfile = $this->logpath . "/Importlogg.txt";
+			            $logline = $time . " - Saved messageId " . $orgno . "/" . $messageid . " as " . $model->path . $model->filename . "\n";
+			            file_put_contents($logfile,$logline, FILE_APPEND);
                         $this->addDBentry($messageid, $model->path, $model->filename);
                         // save messageid to database
                     }
@@ -250,8 +259,9 @@ class Altinn
             $db = $this->dbConnect();
             $this->createDB();
             if ($this->checkDB($messageid)) {
-                $now = new \DateTime();
-                $time = $now->format("Y-m-d H:i:s");
+		        $now = new \DateTime();
+		        $now->setTimezone(new \DateTimeZone('Europe/Oslo'));
+		        $time = $now->format("Y-m-d H:i:s");
                 $xml_url = $this->getFormsUrl($orgno, $messageid);
                 $pdf_url = str_replace("formdata", 'print', $xml_url);
                 if (isset($pdf_url, $xml_url)) {
@@ -260,8 +270,16 @@ class Altinn
                     $messagetype = "Model\\" . $metadata->Skjemainnhold->ytelse;
                     $model = new $messagetype($messageid, $metadata);
                     $result = $this->saveAttachmentFile($pdf_url, $model->path, $model->filename);
-                    if ($result === "Success") {
-                        echo $time . " - Saved messageId " . $messageid . " as " . $model->path . $model->filename . "\n";
+		            if ($result === "Success") {
+                        $this->logpath = ALTINN_LOCAL_STORAGE . "/NAV " . $model->year . "/00 Altinn API/";
+                        if (!file_exists($this->logpath)) {
+                                if (!mkdir($this->logpath, 0755, true) && !is_dir($this->logpath)) {
+                                        throw new \RuntimeException(sprintf('Directory "%s" was not created', $this->logpath));
+                                }
+                        }
+                        $logfile = $this->logpath . "/Importlogg.txt";
+                        $logline = $time . " - Saved messageId " . $orgno . "/" . $messageid . " as " . $model->path . $model->filename . "\n";
+                        file_put_contents($logfile,$logline, FILE_APPEND);
                         $this->addDBentry($messageid, $model->path, $model->filename);
                         // save messageid to database
                     }
