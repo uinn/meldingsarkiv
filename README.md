@@ -27,7 +27,9 @@ Oppdraget er å laste ned 2 hovedtyper av meldinger
   - Pleiepenger
   - Svangerskapspenger
 
-Disse meldingenes metadata innholder ikke navn, så det må gjøres separate oppslag i BAM sin database for å hente ut det.
+## Oppslag i ansattdatabase
+Disse meldingenes metadata innholder ikke navn, så det gjøres separate oppslag (på fødselsnr.) i vårt interne ansattregister (BAM) sin database for å hente ut personens juridiske navn.
+
 ### Søknad om sykepenger
 Denne meldingstypen filtreres på `ServiceCode: 4751` og har følgende metadata:
 ```XML
@@ -181,7 +183,7 @@ Denne meldingstypen filtreres på `ServiceCode: 4936` og har litt forskjellig fo
 
 ## Lagring
 ### Struktur
-De nedlastede meldingene lagres på X/specialSMB i følgende struktur:
+De nedlastede meldingene lagres på et SMB share i følgende struktur:
 - NAV 2020
   - 00 Sykepenger
   - 00 Foreldrepenger
