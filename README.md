@@ -188,19 +188,19 @@ De nedlastede meldingene lagres på et SMB share i følgende struktur:
   - 00 Sykepenger
   - 00 Foreldrepenger
   - 00 Annet
-  - 00 API
+  - 00 Altinn API
 - NAV 2021
   - 00 Sykepenger
   - 00 Foreldrepenger
   - 00 Annet
-  - 00 API
+  - 00 Altinn API
 - NAV 2022
   - 00 Sykepenger
   - 00 Foreldrepenger
   - 00 Annet
-  - 00 API
+  - 00 Altinn API
 
-Mappen "00 API" inneholder loggfil
+Mappen "00 Altinn API" inneholder den cumulative loggfilen "Importlogg.txt"
 
 ### Filnavn
 Filnavn lagres med "underscore" istedenfor mellomrom, og med Altinn sin meldingsId for å sikre unike filnavn.
