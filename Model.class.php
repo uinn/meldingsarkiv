@@ -23,6 +23,7 @@ class Message
             session_start();
         }
         $this->messageid = $messageid;
+        //$this->metadata = $metadata;
     }
 }
 
@@ -32,6 +33,7 @@ class sykmelding extends Message
     {
         parent::__construct($messageid,$metadata);
         $obj = $metadata->sykmelding;
+        //$this->messagetype = array_key_first((array)$metadata);
         $this->messagetype = "sykmelding";
         $this->subtype = "";
         $this->name = preg_replace('/\s+/', '_', ucwords(strtolower($obj->pasient->navn->etternavn . "_" . $obj->pasient->navn->fornavn)));
@@ -55,7 +57,7 @@ class sykepengesoeknad extends Message
         $this->subtype = "";
         $this->name = preg_replace('/\s+/', '_', BAM::getNameFromBAM($obj->sykmeldtesFnr));
         $this->nin = $obj->sykmeldtesFnr;
-        $this->year = date('Y',strtotime($obj->periode->fom));
+        $this->year = date('Y',strtotime($obj->periode->tom));
         $this->startdate = date('ymd',strtotime($obj->periode->fom));
         $this->enddate = date('ymd',strtotime($obj->periode->tom));
         $this->filename = $this->name . "_" . $this->startdate . "-" . $this->enddate . "_" . $messageid . ".pdf";
@@ -78,7 +80,7 @@ class Sykepenger extends Message
             $this->year = date('Y',strtotime($obj->arbeidsforhold->foersteFravaersdag));
             $this->startdate = date('ymd',strtotime($obj->arbeidsforhold->foersteFravaersdag));
         } elseif(is_object($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode) && is_string($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->fom)) {
-            $this->year = date('Y',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->fom));
+            $this->year = date('Y',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->tom));
             $this->startdate = date('ymd',strtotime($obj->sykepengerIArbeidsgiverperioden->arbeidsgiverperiodeListe->arbeidsgiverperiode->fom));
         } else {
             $this->year = date('Y',strtotime($obj->avsendersystem->innsendingstidspunkt));
@@ -269,4 +271,3 @@ class Svangerskapspenger extends Message
     }
 
 }
-
