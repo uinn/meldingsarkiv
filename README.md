@@ -25,10 +25,13 @@ Oppdraget er å laste ned 2 hovedtyper av meldinger
   - Foreldrepenger
   - Omsorgspenger
   - Pleiepenger
+    - Pleiepenger Barn
+    - Pleiepenger Nærstående
   - Svangerskapspenger
+  - Opplæringspenger
 
 ## Oppslag i ansattdatabase
-Disse meldingenes metadata innholder ikke navn, så det gjøres separate oppslag (på fødselsnr.) i vårt interne ansattregister (BAM) sin database for å hente ut personens juridiske navn.
+NB! Disse meldingenes metadata innholder ikke navn, så det gjøres separate oppslag (på fødselsnr.) i vårt interne ansattregister (BAM) sin database for å hente ut personens juridiske navn.
 
 ### Søknad om sykepenger
 Denne meldingstypen filtreres på `ServiceCode: 4751` og har følgende metadata:
