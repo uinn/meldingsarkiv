@@ -64,6 +64,7 @@ class Altinn
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
             $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+            $curl->setCookie(".AspxAuthProd", $_SESSION['altinn-cookie']);
             $curl->get($url);
 
             if ($curl->error) {
@@ -169,6 +170,7 @@ class Altinn
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
             $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+            $curl->setCookie(".AspxAuthProd", $_SESSION['altinn-cookie']);
             $curl->get($url);
 
             if ($curl->error) {
@@ -189,6 +191,7 @@ class Altinn
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
             $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+            $curl->setCookie(".AspxAuthProd", $_SESSION['altinn-cookie']);
             $curl->get($url);
 
             if ($curl->error) {
@@ -226,6 +229,7 @@ class Altinn
                 $curl->setHeader('Content-Type', 'application/hal+json');
                 $curl->setHeader('Accept', 'application/hal+json');
                 $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+                $curl->setCookie(".AspxAuthProd", $_SESSION['altinn-cookie']);
                 $curl->download($url, $filepath);
                 if ($curl->error) {
                     echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
@@ -301,6 +305,7 @@ class Altinn
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
             $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+            $curl->setCookie(".AspxAuthProd", $_SESSION['altinn-cookie']);
             $curl->get($url);
 
             if ($curl->error) {
@@ -323,6 +328,7 @@ class Altinn
             $curl->setHeader('Content-Type', 'application/hal+json');
             $curl->setHeader('Accept', 'application/hal+json');
             $curl->setCookie(".ASPXAUTH", $_SESSION['altinn-cookie']);
+            $curl->setCookie(".AspxAuthProd", $_SESSION['altinn-cookie']);
             $file = tmpfile();
             $path = stream_get_meta_data($file)['uri'];
             $curl->download($url, $path);
