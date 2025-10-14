@@ -10,8 +10,8 @@ const ALTINN_API_CLIENT_PASS = "xxxxxxxx";
 const ALTINN_ORG_NOS = [911031981,911032023,911032058];
 const ALTINN_LOCAL_STORAGE = __DIR__ . "/opt/smbshare";
 const ALTINN_DB = "sqlite:altinn_msg.sqlite3";
-const BAM_DATABASE = "bam";
-const BAM_DATABASE_EMPLOYEEVIEW = "v_users";
+const BAM_DATABASE = "portal-v2";
+const BAM_DATABASE_EMPLOYEEVIEW = "v_employee";
 
 //SQL
 const SQL_TYPE = 'mysql'; //http://php.net/manual/en/pdo.drivers.php
