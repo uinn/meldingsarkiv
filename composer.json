@@ -1,6 +1,6 @@
 {
     "require": {
-        "pear/http_request2": "^2.5",
+        "pear/http_request2": "^2.7",
         "php-curl-class/php-curl-class": "^9.5",
         "vlucas/phpdotenv": "^5.4"
     }
